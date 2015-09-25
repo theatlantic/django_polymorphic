@@ -395,6 +395,15 @@ class PolymorphicTests(TestCase):
         self.assertEqual(repr(objects[2]), '<Model2C: id 3, field1 (CharField), field2 (CharField), field3 (CharField)>')
         self.assertEqual(repr(objects[3]), '<Model2D: id 4, field1 (CharField), field2 (CharField), field3 (CharField), field4 (CharField)>')
 
+    def test_defer_fields(self):
+        self.create_model2abcd()
+        objects_deferred = Model2A.objects.defer('field1')
+        self.assertNotIn('field1', objects_deferred[0].__dict__, 'field1 was not deferred')
+        objects_only = Model2A.objects.only('field1')
+        self.assertNotIn('field4', objects_only[3].__dict__, 'field4 was not deferred')
+
+        objects_deferred_field4 = Model2A.objects.defer('Model2D___field4')
+        self.assertNotIn('field4', objects_deferred_field4[3].__dict__, 'field4 was not deferred')
 
     def test_manual_get_real_instance(self):
         self.create_model2abcd()

@@ -4,9 +4,11 @@
 """
 from __future__ import absolute_import
 
+import copy
 from collections import defaultdict
 
 import django
+from django.db.models import FieldDoesNotExist
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.utils import six
@@ -56,12 +58,16 @@ class PolymorphicQuerySet(QuerySet):
     def __init__(self, *args, **kwargs):
         "init our queryset object member variables"
         self.polymorphic_disabled = False
+        self.polymorphic_deferred_loading = (set([]), True)
         super(PolymorphicQuerySet, self).__init__(*args, **kwargs)
 
     def _clone(self, *args, **kwargs):
         "Django's _clone only copies its own variables, so we need to copy ours here"
         new = super(PolymorphicQuerySet, self)._clone(*args, **kwargs)
         new.polymorphic_disabled = self.polymorphic_disabled
+        new.polymorphic_deferred_loading = (
+            copy.copy(self.polymorphic_deferred_loading[0]),
+            self.polymorphic_deferred_loading[1])
         return new
 
     def non_polymorphic(self, *args, **kwargs):
@@ -92,6 +98,59 @@ class PolymorphicQuerySet(QuerySet):
         """translate the field paths in the args, then call vanilla order_by."""
         new_args = [translate_polymorphic_field_path(self.model, a) for a in args]
         return super(PolymorphicQuerySet, self).order_by(*new_args, **kwargs)
+
+    def defer(self, *fields):
+        """translate the field paths in the args, then call vanilla defer."""
+        new_fields = [translate_polymorphic_field_path(self.model, a) for a in fields]
+        clone = super(PolymorphicQuerySet, self).defer(*new_fields)
+
+        # Retain a copy of the original fields passed, which we'll need when
+        # we're retrieving the real instance
+        clone._polymorphic_add_deferred_loading(fields)
+
+        return clone
+
+    def only(self, *fields):
+        new_fields = [translate_polymorphic_field_path(self.model, a) for a in fields]
+        clone = super(PolymorphicQuerySet, self).only(*new_fields)
+
+        # Retain a copy of the original fields passed, which we'll need when
+        # we're retrieving the real instance
+        clone._polymorphic_add_immediate_loading(fields)
+
+        return clone
+
+    def _polymorphic_add_deferred_loading(self, field_names):
+        """
+        Follows the logic of django.db.models.query.Query.add_deferred_loading(),
+        but for the non-translated field names that were passed to self.defer().
+        """
+        existing, defer = self.polymorphic_deferred_loading
+        if defer:
+            # Add to existing deferred names.
+            self.polymorphic_deferred_loading = existing.union(field_names), True
+        else:
+            # Remove names from the set of any existing "immediate load" names.
+            self.polymorphic_deferred_loading = existing.difference(field_names), False
+
+    def _polymorphic_add_immediate_loading(self, field_names):
+        """
+        Follows the logic of django.db.models.query.Query.add_immediate_loading(),
+        but for the non-translated field names that were passed to self.only()
+        """
+        existing, defer = self.polymorphic_deferred_loading
+        field_names = set(field_names)
+        if 'pk' in field_names:
+            field_names.remove('pk')
+            field_names.add(self.get_meta().pk.name)
+
+        if defer:
+            # Remove any existing deferred names from the current set before
+            # setting the new names.
+            self.polymorphic_deferred_loading = field_names.difference(existing), False
+        else:
+            # Replace any existing "immediate load" field names.
+            self.polymorphic_deferred_loading = field_names, False
 
     def _process_aggregate_args(self, args, kwargs):
         """for aggregate and annotate kwargs: allow ModelX___field syntax for kwargs, forbid it for args.
@@ -220,6 +279,18 @@ class PolymorphicQuerySet(QuerySet):
                 ('%s__in' % pk_name): idlist,
             })
             real_objects.query.select_related = self.query.select_related  # copy select related configuration to new qs
+
+            deferred_loading_fields = []
+            existing_fields = self.polymorphic_deferred_loading[0]
+            existing_fields_translated = [translate_polymorphic_field_path(real_concrete_class, f) for f in existing_fields]
+            for field_name in existing_fields_translated:
+                try:
+                    real_concrete_class._meta.get_field_by_name(field_name)[0]
+                except FieldDoesNotExist:
+                    pass
+                else:
+                    deferred_loading_fields.append(field_name)
+            real_objects.query.deferred_loading = (set(deferred_loading_fields), self.query.deferred_loading[1])
 
             for real_object in real_objects:
                 o_pk = getattr(real_object, pk_name)
