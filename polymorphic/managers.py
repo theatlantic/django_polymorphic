@@ -3,6 +3,7 @@
     Please see README.rst or DOCS.rst or http://chrisglass.github.com/django_polymorphic/
 """
 from __future__ import unicode_literals
+import itertools
 import warnings
 import django
 from django.db import models
@@ -42,7 +43,11 @@ class PolymorphicManager(models.Manager):
             qs = self.queryset_class(self.model, using=self._db, hints=self._hints)
         else:
             qs = self.queryset_class(self.model, using=self._db)
-        if self.model._meta.proxy:
+        mro = self.__class__.__mro__
+        has_custom_get_queryset = any(
+            'get_queryset' in c.__dict__ for c in
+            itertools.takewhile(lambda c: c is not PolymorphicManager, mro))
+        if self.model._meta.proxy and not has_custom_get_queryset:
             qs = qs.instance_of(self.model)
         return qs
 
