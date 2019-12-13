@@ -13,8 +13,14 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         Project.objects.all().delete()
-        o = Project.objects.create(topic="John's gathering")
-        o = ArtProject.objects.create(topic="Sculpting with Tim", artist="T. Turner")
-        o = ResearchProject.objects.create(topic="Swallow Aerodynamics", supervisor="Dr. Winter")
-        print Project.objects.all()
-        print
+        Project.objects.create(topic="John's gathering")
+        ArtProject.objects.create(
+            topic="Sculpting with Tim",
+            artist="T. Turner"
+        )
+        ResearchProject.objects.create(
+            topic="Swallow Aerodynamics",
+            supervisor="Dr. Winter"
+        )
+        print(Project.objects.all())
+        print()
