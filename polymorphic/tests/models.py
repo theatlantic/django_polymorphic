@@ -2,6 +2,7 @@
 
 import uuid
 
+import django
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.query import QuerySet
@@ -201,8 +202,9 @@ class MROBase3(models.Model):
 
 
 class MRODerived(MROBase2, MROBase3):
-    class Meta:
-        manager_inheritance_from_future = True
+    if django.VERSION < (3, 0):
+        class Meta:
+            manager_inheritance_from_future = True
 
 
 class ParentModelWithManager(PolymorphicModel):

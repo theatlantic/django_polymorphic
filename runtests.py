@@ -12,6 +12,13 @@ from django.core.management import execute_from_command_line
 # python -Wd, or run via coverage:
 warnings.simplefilter('always', DeprecationWarning)
 
+# Introduced in Python 3.7
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning,
+    message="Using or importing the ABCs from 'collections' instead of from 'collections.abc'",
+)
+
 # Give feedback on used versions
 sys.stderr.write('Using Python version {0} from {1}\n'.format(sys.version[:5], sys.executable))
 sys.stderr.write('Using Django version {0} from {1}\n'.format(
@@ -42,7 +49,11 @@ if not settings.configured:
             'polymorphic',
             'polymorphic.tests',
         ),
-        MIDDLEWARE_CLASSES=(),
+        MIDDLEWARE=(
+            'django.contrib.auth.middleware.AuthenticationMiddleware',
+            'django.contrib.messages.middleware.MessageMiddleware',
+            'django.contrib.sessions.middleware.SessionMiddleware',
+        ),
         SITE_ID=3,
         TEMPLATES=[{
             "BACKEND": "django.template.backends.django.DjangoTemplates",

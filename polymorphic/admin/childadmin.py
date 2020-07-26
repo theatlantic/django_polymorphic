@@ -2,10 +2,10 @@
 The child admin displays the change/delete view of the subclass model.
 """
 import inspect
+import six
 
 from django.contrib import admin
 from django.urls import resolve
-from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 
 from polymorphic.utils import get_base_polymorphic_model

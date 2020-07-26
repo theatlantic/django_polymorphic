@@ -10,7 +10,7 @@ from collections import defaultdict
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import FieldDoesNotExist
 from django.db.models.query import ModelIterable, Q, QuerySet
-from django.utils import six
+import six
 
 from .query_translate import translate_polymorphic_filter_definitions_in_kwargs, translate_polymorphic_filter_definitions_in_args
 from .query_translate import translate_polymorphic_field_path, translate_polymorphic_Q_object

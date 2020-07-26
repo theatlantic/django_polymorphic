@@ -6,20 +6,16 @@ python: "3.6"
 
 env:
   - TOXENV=py27-django111
-  - TOXENV=py34-django111
-  - TOXENV=py34-django20
-  - TOXENV=py35-django111
-  - TOXENV=py35-django20
-  - TOXENV=py35-djangomaster
-  - TOXENV=py36-django111
-  - TOXENV=py36-django20
-  - TOXENV=py36-django21
-  - TOXENV=py36-djangomaster
-  - TOXENV=py37-django21
+  - TOXENV=py37-django111
+  - TOXENV=py37-django20
+  - TOXENV=py37-django22
+  - TOXENV=py37-django30
+
   # XXX: Use a matrix to build these?
-  - TOXENV=py36-django111-postgres DB=postgres
-  - TOXENV=py36-django20-postgres DB=postgres
-  - TOXENV=py36-djangomaster-postgres DB=postgres
+  - TOXENV=py37-django111-postgres DB=postgres
+  - TOXENV=py37-django20-postgres DB=postgres
+  - TOXENV=py37-django22-postgres DB=postgres
+  - TOXENV=py37-django30-postgres DB=postgres
 
 services:
   - postgres
@@ -31,29 +27,17 @@ matrix:
   include:
     - python: "2.7"
       env: TOXENV=py27-django111
-    - python: "3.5"
-      env: TOXENV=py35-django111
-    - python: "3.5"
-      env: TOXENV=py35-django20
-    - python: "3.5"
-      env: TOXENV=py35-djangomaster
     - python: "3.7"
-      env: TOXENV=py37-django21
-  exclude:
-    - python: "3.6"
-      env: TOXENV=py27-django111
-    - python: "3.6"
-      env: TOXENV=py35-django111
-    - python: "3.6"
-      env: TOXENV=py35-django20
-    - python: "3.6"
-      env: TOXENV=py35-djangomaster
-    - python: "3.6"
-      env: TOXENV=py37-django21
+      env: TOXENV=py37-django111
+    - python: "3.7"
+      env: TOXENV=py37-django20
+    - python: "3.7"
+      env: TOXENV=py37-django22
+    - python: "3.7"
+      env: TOXENV=py37-django30
   allow_failures:
-    - env: TOXENV=py35-djangomaster
-    - env: TOXENV=py36-djangomaster
-    - env: TOXENV=py36-djangomaster-postgres DB=postgres
+    - env: TOXENV=py37-django30
+    - env: TOXENV=py37-django30-postgres DB=postgres
 
 cache:
   directories:

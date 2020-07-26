@@ -1,5 +1,5 @@
 from django.template import Library, Node, TemplateSyntaxError
-from django.utils import six
+import six
 
 register = Library()
 

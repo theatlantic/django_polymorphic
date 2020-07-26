@@ -2,8 +2,8 @@
 import re
 
 from django.db import models
-from django.utils import six
-from django.utils.six import python_2_unicode_compatible
+import six
+from six import python_2_unicode_compatible
 
 
 RE_DEFERRED = re.compile('_Deferred_.*')

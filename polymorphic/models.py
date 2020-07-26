@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.related import ReverseOneToOneDescriptor, ForwardManyToOneDescriptor
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils import six
+import six
 
 from .base import PolymorphicModelBase
 from .managers import PolymorphicManager

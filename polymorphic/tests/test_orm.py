@@ -5,7 +5,7 @@ import django
 from django.db import models
 from django.db.models import Case, Count, Q, When
 from django.test import TestCase, TransactionTestCase
-from django.utils import six
+import six
 
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicTypeUndefined
